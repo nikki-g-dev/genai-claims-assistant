@@ -1,80 +1,68 @@
-# GenAI Claims Assistant
+# genai-claims-assistant
 
-A polished Next.js app for intake, triage, and decision support in an insurance-style claims workflow.
+GenAI Claims Assistant is now structured as a multi-service repository with a React frontend, Spring Boot backend scaffolding, a Python AI service for RAG workflows, and dedicated architecture docs.
 
-## What it does
+## Repository structure
 
-- Captures core claim intake details
-- Runs a local AI-style scoring engine for claim triage
-- Flags missing documents and claim risk patterns
-- Recommends fast-track, manual review, or escalation
-- Shows a sample claim queue for dashboard context
-- Exposes API routes for claims and analysis
+```text
+genai-claims-assistant/
+├── backend/            Spring Boot services
+├── ai-service/         Python RAG + embeddings service
+├── frontend/           Next.js / React dashboard
+├── docs/               Architecture and diagrams
+├── README.md
+└── docker-compose.yml
+```
 
-## Stack
+## Architecture
+
+The target request flow is:
+
+`User -> API -> Kafka -> Services -> LLM -> Vector DB -> Response`
+
+See [docs/architecture.md](/Users/rahul/Desktop/Nikki%20docs/genai-claims-assistant/docs/architecture.md) for the full diagram and service notes.
+
+## Services
+
+### `frontend/`
 
 - Next.js 15
 - React 19
 - TypeScript
-- CSS with a custom editorial dashboard theme
+- Claims dashboard, intake flow, AI summarization UI
 
-## Local setup
+Run locally:
 
 ```bash
+cd frontend
 npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`.
+### `backend/`
 
-Create a `.env.local` file to enable OpenAI-powered claim summaries and document parsing:
+- Spring Boot scaffold
+- Intended home for claims APIs, orchestration, Kafka producers/consumers, and business services
+
+### `ai-service/`
+
+- Python FastAPI scaffold
+- Intended home for retrieval, embeddings, vector search, and LLM orchestration
+
+### `docs/`
+
+- Architecture diagram
+- Repo-level design documentation
+
+## Frontend environment
+
+Create `frontend/.env.local` to enable OpenAI-powered claim summaries and document parsing:
 
 ```bash
 OPENAI_API_KEY=your_api_key_here
-# Optional override
 OPENAI_MODEL=gpt-4o-mini
 ```
 
-## API routes
+## Optional local orchestration
 
-- `GET /api/claims`
-- `POST /api/analyze`
-- `POST /api/claim-assistant`
-
-Example payload for `/api/analyze`:
-
-```json
-{
-  "claimantName": "Jordan Lee",
-  "policyNumber": "POL-550217",
-  "claimType": "Medical",
-  "amount": 3200,
-  "incidentDate": "2026-03-18",
-  "submittedDate": "2026-03-20",
-  "description": "Claimant visited urgent care after a workplace slip, including imaging, treatment, and prescribed medication for recovery over three days.",
-  "documents": ["ID Proof", "Hospital Bill", "Physician Note"],
-  "priorClaims": 1,
-  "urgent": true
-}
-```
-
-## Project structure
-
-```text
-app/
-  api/analyze/route.ts
-  api/claims/route.ts
-  globals.css
-  layout.tsx
-  page.tsx
-components/
-  claim-form.tsx
-lib/
-  claim-analysis.ts
-  sample-data.ts
-  types.ts
-```
-
-## Notes
-
-This project always includes a deterministic analysis engine, so the dashboard still works without external API keys. When `OPENAI_API_KEY` is configured, the app also sends claim details and uploaded documents to the OpenAI Responses API for richer summaries and document-level extraction. OpenAI’s file-input docs state that Responses API requests can send files as `input_file` items, including PDFs and Office documents, and that supported models can also accept image inputs for analysis. See [OpenAI file inputs](https://developers.openai.com/api/docs/guides/file-inputs).
+A starter [docker-compose.yml](/Users/rahul/Desktop/Nikki%20docs/genai-claims-assistant/docker-compose.yml) is included for bringing up Kafka, Zookeeper, the backend, the AI service, and the frontend together.
